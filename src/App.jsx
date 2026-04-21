@@ -113,19 +113,13 @@ export default function App(){
     }).join("\n");
     const ud=`MODELO: ${MODELO_FULL[mod]} | MONEDA: ${cur} | PERÍODO: ${mes}\nCANALES:\n${breakdown}\nTOTALES: Inv=${fm(tI,"CLP")} Ing=${fm(tG,"CLP")} CTR=${fp(ctr)}(bench ${bm.ctr}%) CVR=${fp(cvr)}(bench ${bm.cvr}%) CPV=${fm(cpv,"CLP")}(bench $${bm.cpv}) ROI=${fp(roi)}(bench ${bm.roi}%) ROAS=${fx(roas)}(bench ${bm.roas}x) DIKW=${dLabel}`;
     try{
-      // ── En Netlify: reemplaza esta URL por /.netlify/functions/gemini ──
-      // ── En claude.ai preview: usa la API de Claude directamente ────────
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
+      const res=await fetch("/.netlify/functions/gemini",{
         method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",max_tokens:1000,
-          system:`Eres el Senior Strategy & Decision Engine del Metrics Decision Hub (UDD/Zigna). Diagnóstico ejecutivo en español usando DIKW y DMAIC. Sin emojis. Usa tablas Markdown y encabezados ##. Estructura: ## 1. DIAGNÓSTICO ESTRATÉGICO (tabla Canal|Métrica|Valor|Benchmark|Estado|Brecha) ## 2. MODELO DE ATRIBUCIÓN — ¿QUÉ CANAL MANDA? ## 3. CAUSA RAÍZ Y PUNTO DE FUGA ## 4. SUSTENTO EN CASOS REALES 2023-2026 ## 5. PLAN DMAIC (tabla Fase|Acción|Métrica de Control|Plazo). Si ROAS>ROI*2: advertir sobreatribución FitLife. Si ROI<bench: aplicar Botón $300M.`,
-          messages:[{role:"user",content:`Analiza y diagnostica:\n\n${ud}`}]
-        })
+        body:JSON.stringify({ userData: ud })
       });
-      if(!res.ok){const e=await res.json();throw new Error(e?.error?.message||JSON.stringify(e));}
+      if(!res.ok){const e=await res.json();throw new Error(e?.error||JSON.stringify(e));}
       const data=await res.json();
-      const txt=data?.content?.[0]?.text;
+      const txt=data?.text;
       if(txt){setDiag(txt);setSaved(true);}
       else setErr("Sin respuesta de la IA. Intenta nuevamente.");
     }catch(e){setErr(`Error: ${e.message}`);}
