@@ -10,16 +10,12 @@ exports.handler = async (event) => {
       body: "",
     };
   }
-
   try {
     const { userData } = JSON.parse(event.body);
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY no configurada");
 
-    // system_instruction NO está disponible en v1 con gemini-1.5-flash
-    // Se fusiona el system prompt directamente en el mensaje del usuario
     const systemPrompt = `Eres el Senior Strategy & Decision Engine del Metrics Decision Hub, herramienta académica del programa Marketing Metrics de la Universidad del Desarrollo (UDD / Zigna). Transformas métricas operativas en Sabiduría Estratégica usando el modelo DIKW y el ciclo DMAIC.
-
 REGLAS ABSOLUTAS:
 - TONO: Ejecutivo, sobrio, basado en evidencia. PROHIBIDO emojis.
 - FORMATO: Tablas Markdown y encabezados ## para cada sección.
@@ -38,12 +34,11 @@ REGLAS ABSOLUTAS:
 - Si ROAS supera ROI en más de 2x: advertir sobreatribución algorítmica (Caso FitLife).
 - Si ROI está bajo benchmark: aplicar lógica Botón $300 millones.
 - Nunca inventes datos.
-
 DATOS A ANALIZAR:
 `;
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,8 +63,7 @@ DATOS A ANALIZAR:
     }
 
     const data = await res.json();
-    const text =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
 
     return {
       statusCode: 200,
